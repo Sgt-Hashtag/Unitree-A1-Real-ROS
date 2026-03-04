@@ -32,6 +32,9 @@ IOSDK::IOSDK():_safe(UNITREE_LEGGED_SDK::LeggedType::Aliengo), _udp(UNITREE_LEGG
     _udp.InitCmdData(_lowCmd);
     // cmdPanel = new WirelessHandle();
     cmdPanel = new KeyBoard();
+#ifdef COMPILE_WITH_MCP
+    _mcp_pub = _nh.advertise<a1_mcp_bridge::RobotStateReport>("/a1_robot/full_state", 10);
+#endif
 
 #ifdef COMPILE_WITH_MOVE_BASE
     _pub = _nh.advertise<sensor_msgs::JointState>("/joint_states", 20);
@@ -84,6 +87,45 @@ void IOSDK::sendRecv(const LowlevelCmd *cmd, LowlevelState *state){
     cmdPanel->receiveHandle(&_lowState);
     state->userCmd = cmdPanel->getUserCmd();
     state->userValue = cmdPanel->getUserValue();
+
+#ifdef COMPILE_WITH_MCP
+    // --- MCP BRIDGE UPDATE ---
+    a1_mcp_bridge::RobotStateReport mcp_msg;
+    mcp_msg.header.stamp = ros::Time::now();
+
+    // Foot Forces
+    for(int i=0; i<4; ++i) {
+        mcp_msg.foot_forces[i] = _lowState.footForce[i];
+    }
+
+    //Convert Quaternion to Euler for the LLM
+    // Unitree [w, x, y, z] -> ROS tf  [x, y, z, w]
+    tf::Quaternion q(
+        _lowState.imu.quaternion[1], 
+        _lowState.imu.quaternion[2], 
+        _lowState.imu.quaternion[3], 
+        _lowState.imu.quaternion[0]
+    );
+    tf::Matrix3x3 m(q);
+    double roll, pitch, yaw;
+    m.getRPY(roll, pitch, yaw);
+
+    mcp_msg.imu_euler[0] = static_cast<float>(roll);
+    mcp_msg.imu_euler[1] = static_cast<float>(pitch);
+    mcp_msg.imu_euler[2] = static_cast<float>(yaw);
+
+    // Estimated Velocity same as odom
+    
+    mcp_msg.base_velocity[0] = state->vWorld[0];  
+    mcp_msg.base_velocity[1] = state->vWorld[1];
+    mcp_msg.base_velocity[2] = state->vWorld[2];
+
+    mcp_msg.current_gait_mode = "RL_CONTROLLER"; // Label for the LLM
+    mcp_msg.is_safe = true; // Set logic here if you have safety checks
+
+    _mcp_pub.publish(mcp_msg);
+    // -------------------------
+#endif
 
 #ifdef COMPILE_WITH_MOVE_BASE
     _joint_state.header.stamp = ros::Time::now();

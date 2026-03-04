@@ -5,10 +5,14 @@ set(ROBOT_TYPE A1)         # The type of robot, support Go1 and A1 currently
 set(PLATFORM amd64)         # The platform to compile, support amd64 and arm64
 
 set(CATKIN_MAKE ON)        # Use CATKIN_MAKE or not, ON or OFF
-set(SIMULATION OFF)         # Use Gazebo or not, ON or OFF
-set(REAL_ROBOT ON)          # Link real robot or not, ON or OFF
+set(SIMULATION ON)         # Use Gazebo or not, ON or OFF
+set(REAL_ROBOT OFF)          # Link real robot or not, ON or OFF
 set(DEBUG OFF)              # Use debug functions or not, ON or OFF
 set(MOVE_BASE ON)               # Need move_base or not, ON or OFF 
+set(MCP_ENV $ENV{MCP})
+if(NOT MCP_ENV)
+    set(MCP_ENV "OFF")
+endif()
 
 if(NOT DEFINED ROBOT_TYPE)
     message(FATAL_ERROR "[CMake ERROR] Have not defined ROBOT_TYPE")
@@ -59,6 +63,17 @@ if(CATKIN_MAKE)
             # gazebo
         )
     endif()
+    if(MCP_ENV STREQUAL "ON")
+    	set(MCP_ENABLED TRUE)
+    	add_definitions(-DCOMPILE_WITH_MCP)
+    else()
+    	set(MCP_ENABLED FALSE)
+    endif()
+    set(mcp_deps "")
+    if(MCP_ENABLED)
+        set(mcp_deps "a1_mcp_bridge")
+        message(STATUS "[MCP] Bridge integration enabled")
+    endif()
 
     find_package(catkin REQUIRED COMPONENTS
         genmsg
@@ -68,10 +83,12 @@ if(CATKIN_MAKE)
         tf
         geometry_msgs
         unitree_legged_msgs
+        ${mcp_deps}  
     )
     catkin_package(
         CATKIN_DEPENDS 
         unitree_legged_msgs 
+        ${mcp_deps}  # downstream packages see the bridge if enabled
     )
 endif()
 

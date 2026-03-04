@@ -72,6 +72,10 @@ struct LowlevelState
     MotorState motorState[12];
     UserCommand userCmd;
     UserValue userValue;
+    // ----------
+    Vec3 vWorld; 
+    Vec3 vBody;
+    // ---------------------------
 
     Vec34 getQ(){
         Vec34 qLegs;
@@ -125,6 +129,10 @@ struct LowlevelState
         for(int i(0); i<12; ++i){
             motorState[i].q = q(i);
         }
+    }
+    LowlevelState(){
+        vWorld.setZero();
+        vBody.setZero();
     }
 };
 

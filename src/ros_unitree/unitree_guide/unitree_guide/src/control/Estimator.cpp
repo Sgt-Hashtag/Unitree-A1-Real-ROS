@@ -163,6 +163,10 @@ void Estimator::run(){
     _xhat += _Ppriori * _C.transpose() * _Sy;
     _P =  _IKC * _Ppriori * _IKC.transpose()
         + _Ppriori * _C.transpose() * _SR * _STC * _Ppriori.transpose();
+    _velBody = _rotMatB2G.transpose() * _xhat.segment(3, 3);
+
+    _lowState->vWorld = getVelocity(); 
+    _lowState->vBody = _velBody;
 
     _vxFilter->addValue(_xhat(3));
     _vyFilter->addValue(_xhat(4));

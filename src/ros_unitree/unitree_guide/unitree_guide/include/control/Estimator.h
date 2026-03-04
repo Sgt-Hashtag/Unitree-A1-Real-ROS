@@ -92,6 +92,7 @@ private:
     AvgCov *_RCheck;
     AvgCov *_uCheck;
     std::string _estName;
+    Vec3 _velBody, _wBody;
 
 #ifdef COMPILE_DEBUG
     PyPlot *_testPlot;
@@ -106,19 +107,18 @@ private:
     int _count = 0;
     double _pubFreq = 10;
 
-    Vec3 _velBody, _wBody;
-    boost::array<double, 36> _odom_pose_covariance = {1e-9, 0, 0, 0, 0, 0, 
+    boost::array<double, 36> _odom_pose_covariance = {{1e-9, 0, 0, 0, 0, 0, 
                                         0, 1e-3, 1e-9, 0, 0, 0, 
                                         0, 0, 1e6, 0, 0, 0,
                                         0, 0, 0, 1e6, 0, 0, 
                                         0, 0, 0, 0, 1e6, 0, 
-                                        0, 0, 0, 0, 0, 1e-9};
-    boost::array<double, 36> _odom_twist_covariance = {1e-9, 0, 0, 0, 0, 0, 
+                                        0, 0, 0, 0, 0, 1e-9}};
+    boost::array<double, 36> _odom_twist_covariance = {{1e-9, 0, 0, 0, 0, 0, 
                                         0, 1e-3, 1e-9, 0, 0, 0, 
                                         0, 0, 1e6, 0, 0, 0, 
                                         0, 0, 0, 1e6, 0, 0, 
                                         0, 0, 0, 0, 1e6, 0, 
-                                        0, 0, 0, 0, 0, 1e-9};
+                                        0, 0, 0, 0, 0, 1e-9}};
 #endif  // COMPILE_WITH_MOVE_BASE
 
 };

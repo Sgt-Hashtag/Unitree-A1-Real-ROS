@@ -6,7 +6,9 @@
 
 #include "interface/IOInterface.h"
 #include "unitree_legged_sdk/unitree_legged_sdk.h"
-
+#ifdef COMPILE_WITH_MCP
+#include <a1_mcp_bridge/RobotStateReport.h>
+#endif  // COMPILE_WITH_MCP
 #ifdef COMPILE_WITH_MOVE_BASE
     #include <ros/ros.h>
     #include <ros/time.h>
@@ -27,7 +29,9 @@ UNITREE_LEGGED_SDK::UDP _udp;
 UNITREE_LEGGED_SDK::Safety _safe;
 UNITREE_LEGGED_SDK::LowCmd _lowCmd;
 UNITREE_LEGGED_SDK::LowState _lowState;
-
+#ifdef COMPILE_WITH_MCP
+ros::Publisher _mcp_pub;
+#endif
 #ifdef COMPILE_WITH_MOVE_BASE
     ros::NodeHandle _nh;
     ros::Publisher _pub;
